@@ -8,6 +8,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.plugin.Plugin;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -25,20 +26,31 @@ public class Ranking {
     @Setter
     @Getter
     private String name;
-    @Setter
-    private RankingFormat rankingFormat = new RankingFormat();
-    private LinkedHashMap<String, String> list = new LinkedHashMap<>();
     private Position position;
     private IEntityRanking entityRanking;
+    private RankingFormat rankingFormat = new RankingFormat();
+    private LinkedHashMap<String, String> list = new LinkedHashMap<>();
     @Getter
     private boolean closed = false;
 
-    public Ranking(Plugin plugin, String name, Position position) {
+    /**
+     * 排行榜
+     *
+     * @param plugin 插件主类
+     * @param name 排行榜名称
+     * @param position 排行榜位置
+     */
+    public Ranking(@NotNull Plugin plugin, @NotNull String name, @NotNull Position position) {
         this.plugin = plugin;
         this.setName(name);
         this.setPosition(position);
         this.setRankingEntity(EntityRankingText.class);
         this.schedulerTask();
+    }
+
+    private void schedulerTask() {
+        this.rankingAPI.getUpdateTask().addRanking(this);
+        this.rankingAPI.getAsyncUpdateTask().addRanking(this);
     }
 
     public void onTick(int i) {
@@ -94,25 +106,28 @@ public class Ranking {
             }
 
             showText.append(this.rankingFormat.getBottom().replace("%name%", this.getName()));
-            this.entityRanking.getShowTextMap().put(player, showText.toString());
+            this.entityRanking.setShowText(player, showText.toString());
         }
     }
 
-    public void setPosition(Position position) {
+    /**
+     * 设置排行榜位置
+     *
+     * @param position 排行榜位置
+     */
+    public void setPosition(@NotNull Position position) {
         this.position = position;
         if (this.entityRanking != null) {
             this.entityRanking.setPosition(position);
         }
     }
 
-    public void setRankingEntity(Class<? extends IEntityRanking> newEntityRanking) {
-        if (newEntityRanking == null) {
-            try {
-                this.entityRanking = newEntityRanking.getConstructor(Position.class).newInstance(this.position);
-            } catch (Exception e) {
-                RankingAPI.getInstance().getLogger().error("创建实体时出现错误：", e);
-            }
-        }
+    /**
+     * 设置排行榜实体
+     *
+     * @param newEntityRanking 新排行榜实体
+     */
+    public void setRankingEntity(@NotNull Class<? extends IEntityRanking> newEntityRanking) {
         if (this.entityRanking != null) {
             this.entityRanking.close();
         }
@@ -120,29 +135,41 @@ public class Ranking {
             this.entityRanking = newEntityRanking.getConstructor().newInstance();
             this.entityRanking.setPosition(this.position);
         } catch (Exception e) {
-            RankingAPI.getInstance().getLogger().error("创建实体时出现错误：", e);
+            this.rankingAPI.getLogger().error("创建实体时出现错误：", e);
         }
     }
 
-    public void setRankingList(Map<String, Number> newList) {
+    /**
+     * 设置排行榜格式
+     *
+     * @param rankingFormat 排行榜格式
+     */
+    public void setRankingFormat(@NotNull RankingFormat rankingFormat) {
+        this.rankingFormat = rankingFormat;
+    }
+
+    /**
+     * 设置需要排行的数据
+     *
+     * @param newList 新数据
+     */
+    public void setRankingList(@NotNull Map<String, ? extends Number> newList) {
         this.clearRankingList();
-        List<Map.Entry<String, Number>> list = new ArrayList<>(newList.entrySet());
+        List<Map.Entry<String, ? extends Number>> list = new ArrayList<>(newList.entrySet());
         if (this.rankingFormat.getSortOrder() == RankingFormat.SortOrder.ASCENDING) {
             list.sort((o1, o2) -> (int) Math.round(o2.getValue().doubleValue() - o1.getValue().doubleValue()));
         }else {
             list.sort((o1, o2) -> (int) Math.round(o1.getValue().doubleValue() - o2.getValue().doubleValue()));
         }
-        for(Map.Entry<String, Number> entry : list) {
+        for(Map.Entry<String, ? extends Number> entry : list) {
             this.list.put(entry.getKey(), entry.getValue().toString());
         }
         this.updateShowText();
     }
 
-    private void schedulerTask() {
-        this.rankingAPI.getUpdateTask().addRanking(this);
-        this.rankingAPI.getAsyncUpdateTask().addRanking(this);
-    }
-
+    /**
+     * 清理排行榜
+     */
     public void clearRankingList() {
        this.list.clear();
        if (this.entityRanking != null) {
@@ -150,6 +177,9 @@ public class Ranking {
        }
     }
 
+    /**
+     * 关闭排行榜
+     */
     public void close() {
         this.closed = true;
         this.rankingAPI.getUpdateTask().removeRanking(this);

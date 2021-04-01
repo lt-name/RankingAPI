@@ -3,6 +3,7 @@ package cn.lanink.rankingapi.task;
 import cn.lanink.rankingapi.Ranking;
 import cn.lanink.rankingapi.RankingAPI;
 import cn.nukkit.scheduler.PluginTask;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Set;
@@ -27,12 +28,12 @@ public class UpdateTask extends PluginTask<RankingAPI> implements IRankingAPITas
     }
 
     @Override
-    public boolean addRanking(Ranking ranking) {
+    public boolean addRanking(@NotNull Ranking ranking) {
         return this.updateRankings.add(ranking);
     }
 
     @Override
-    public void removeRanking(Ranking ranking) {
+    public void removeRanking(@NotNull Ranking ranking) {
         this.updateRankings.remove(ranking);
     }
 

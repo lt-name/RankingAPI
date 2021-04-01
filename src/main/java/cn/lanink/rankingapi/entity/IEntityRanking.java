@@ -2,6 +2,7 @@ package cn.lanink.rankingapi.entity;
 
 import cn.nukkit.Player;
 import cn.nukkit.level.Position;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -10,9 +11,11 @@ import java.util.Map;
  */
 public interface IEntityRanking {
 
+    void setPosition(Position position);
+
     Map<Player, String> getShowTextMap();
 
-    void setPosition(Position position);
+    void setShowText(@NotNull Player player, @NotNull String showText);
 
     default boolean needTick() {
         return true;

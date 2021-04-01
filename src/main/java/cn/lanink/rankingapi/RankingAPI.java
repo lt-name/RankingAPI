@@ -6,6 +6,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.plugin.Plugin;
 import cn.nukkit.plugin.PluginBase;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lt_name
@@ -51,7 +52,15 @@ public class RankingAPI extends PluginBase {
 
     }
 
-    public static Ranking createRanking(Plugin plugin, String name, Position position) {
+    /**
+     * 创建一个新的排行榜
+     *
+     * @param plugin 插件主类
+     * @param name 排行榜名称
+     * @param position 排行榜位置
+     * @return 排行榜实例
+     */
+    public static Ranking createRanking(@NotNull Plugin plugin, @NotNull String name, @NotNull Position position) {
         return new Ranking(plugin, name, position);
     }
 

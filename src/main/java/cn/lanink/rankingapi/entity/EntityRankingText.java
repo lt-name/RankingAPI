@@ -11,6 +11,7 @@ import cn.nukkit.network.protocol.RemoveEntityPacket;
 import cn.nukkit.network.protocol.SetEntityDataPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Map;
@@ -58,7 +59,7 @@ public class EntityRankingText implements IEntityRanking {
         this.id = Entity.entityCount++;
     }
 
-    public void setShowText(Player player, String showText) {
+    public void setShowText(@NotNull Player player, @NotNull String showText) {
         this.showTextMap.put(player, showText);
     }
 
@@ -99,7 +100,7 @@ public class EntityRankingText implements IEntityRanking {
     }
 
     @Override
-    public void spawnTo(Player player) {
+    public void spawnTo(@NotNull Player player) {
         if (this.hasSpawned.contains(player)) {
             this.despawnFrom(player);
         }
@@ -122,7 +123,7 @@ public class EntityRankingText implements IEntityRanking {
     }
 
     @Override
-    public void despawnFrom(Player player) {
+    public void despawnFrom(@NotNull Player player) {
         if (this.hasSpawned.contains(player)) {
             RemoveEntityPacket pk = new RemoveEntityPacket();
             pk.eid = this.getId();
@@ -139,12 +140,12 @@ public class EntityRankingText implements IEntityRanking {
         }
     }
 
-    public void sendText(Player player, String string) {
+    private void sendText(@NotNull Player player, @NotNull String string) {
         this.sendData(new Player[] {player},
                 (new EntityMetadata()).putString(Entity.DATA_NAMETAG, string));
     }
 
-    public void sendData(Player[] players, EntityMetadata data) {
+    private void sendData(@NotNull Player[] players, @NotNull EntityMetadata data) {
         SetEntityDataPacket pk = new SetEntityDataPacket();
         pk.eid = this.getId();
         pk.metadata = data;
