@@ -6,7 +6,6 @@ import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.level.Level;
-import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.AddEntityPacket;
 import cn.nukkit.network.protocol.RemoveEntityPacket;
@@ -59,14 +58,8 @@ public class EntityRankingText implements IEntityRanking {
     @Getter
     protected Map<Player, String> showTextMap = new ConcurrentHashMap<>();
 
-    public EntityRankingText(Position pos) {
-        this(pos.clone(), pos.getLevel());
-    }
-
-    public EntityRankingText(Vector3 pos, Level level) {
+    public EntityRankingText() {
         this.id = Entity.entityCount++;
-        this.pos = pos;
-        this.level = level;
     }
 
     public void setShowText(Player player, String showText) {

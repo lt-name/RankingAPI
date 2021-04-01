@@ -32,68 +32,87 @@ public class Ranking {
     private Position position;
     private IEntityRanking entityRanking;
     @Getter
-    private boolean close = false;
+    private boolean closed = false;
 
     public Ranking(Plugin plugin, String name, Position position) {
         this.plugin = plugin;
         this.setName(name);
         this.setPosition(position);
         this.setRankingEntity(EntityRankingText.class);
+        this.schedulerTask();
     }
 
     public void onTick(int i) {
-        this.entityRanking.onTick(i);
+        if (this.isClosed()) {
+            return;
+        }
+        if (this.entityRanking.needTick()) {
+            this.entityRanking.onTick(i);
+        }
     }
 
     public void onAsyncTick(int i) {
-        if (i%20 == 0) {
-            for (Player player : Server.getInstance().getOnlinePlayers().values()) {
-                StringBuilder showText = new StringBuilder(this.rankingFormat.getTop()
-                        .replace("%name%", this.getName())).append("\n");
-
-                int line = 0;
-                for (Map.Entry<String, String> entry : this.list.entrySet()) {
-                    line++;
-
-                    String lineText;
-                    if (line > this.rankingFormat.getShowLine()) {
-                        break;
-                    }
-                    if (player.getName().equals(entry.getKey())) {
-                        lineText = this.rankingFormat.getLineSelf()
-                                .replace("%ranking%", line + "")
-                                .replace("%player%", entry.getKey())
-                                .replace("%score%", entry.getValue());
-                    }else {
-                        lineText = this.rankingFormat.getLine()
-                                .replace("%ranking%", line + "")
-                                .replace("%player%", entry.getKey())
-                                .replace("%score%", entry.getValue());
-                    }
-                    showText.append(lineText).append("\n");
-                }
-
-                showText.append(this.rankingFormat.getBottom().replace("%name%", this.getName()));
-                this.entityRanking.getShowTextMap().put(player, showText.toString());
-            }
+        if (this.isClosed()) {
+            return;
         }
-        this.entityRanking.onAsyncTick(i);
+        if (i%100 == 0) {
+            this.updateShowText();
+        }
+        if (this.entityRanking.needAsyncTick()) {
+            this.entityRanking.onAsyncTick(i);
+        }
     }
 
-    public void setRankingEntity(Class<? extends IEntityRanking> entityRanking) {
-        if (this.entityRanking != null) {
-            this.entityRanking.close();
+    private void updateShowText() {
+        for (Player player : Server.getInstance().getOnlinePlayers().values()) {
+            StringBuilder showText = new StringBuilder(this.rankingFormat.getTop()
+                    .replace("%name%", this.getName())).append("\n");
+
+            int line = 0;
+            for (Map.Entry<String, String> entry : this.list.entrySet()) {
+                line++;
+
+                String lineText;
+                if (line > this.rankingFormat.getShowLine()) {
+                    break;
+                }
+                if (player.getName().equals(entry.getKey())) {
+                    lineText = this.rankingFormat.getLineSelf()
+                            .replace("%ranking%", line + "")
+                            .replace("%player%", entry.getKey())
+                            .replace("%score%", entry.getValue());
+                }else {
+                    lineText = this.rankingFormat.getLine()
+                            .replace("%ranking%", line + "")
+                            .replace("%player%", entry.getKey())
+                            .replace("%score%", entry.getValue());
+                }
+                showText.append(lineText).append("\n");
+            }
+
+            showText.append(this.rankingFormat.getBottom().replace("%name%", this.getName()));
+            this.entityRanking.getShowTextMap().put(player, showText.toString());
         }
-        if (entityRanking != null) {
+    }
+
+    public void setRankingEntity(Class<? extends IEntityRanking> newEntityRanking) {
+        if (newEntityRanking == null) {
             try {
-                this.entityRanking = entityRanking.getConstructor(Position.class).newInstance(this.position);
+                this.entityRanking = newEntityRanking.getConstructor(Position.class).newInstance(this.position);
             } catch (Exception e) {
                 RankingAPI.getInstance().getLogger().error("创建实体时出现错误：", e);
             }
-        }else {
-            this.entityRanking = null;
         }
-        this.updateSchedulerTask();
+        if (this.entityRanking != null) {
+            this.entityRanking.close();
+        }
+        try {
+            this.entityRanking = newEntityRanking.getConstructor().newInstance();
+            this.entityRanking.setPos(this.position);
+            this.entityRanking.setLevel(this.position.getLevel());
+        } catch (Exception e) {
+            RankingAPI.getInstance().getLogger().error("创建实体时出现错误：", e);
+        }
     }
 
     public void setRankingList(Map<String, Number> newList) {
@@ -107,19 +126,12 @@ public class Ranking {
         for(Map.Entry<String, Number> entry : list) {
             this.list.put(entry.getKey(), entry.getValue().toString());
         }
+        this.updateShowText();
     }
 
-    public void updateSchedulerTask() {
-        if (this.entityRanking != null && this.entityRanking.needTick()) {
-            this.rankingAPI.getUpdateTask().addRanking(this);
-        }else {
-            this.rankingAPI.getUpdateTask().removeRanking(this);
-        }
-        if (this.entityRanking != null && this.entityRanking.needAsyncTick()) {
-            this.rankingAPI.getAsyncUpdateTask().addRanking(this);
-        }else {
-            this.rankingAPI.getAsyncUpdateTask().removeRanking(this);
-        }
+    private void schedulerTask() {
+        this.rankingAPI.getUpdateTask().addRanking(this);
+        this.rankingAPI.getAsyncUpdateTask().addRanking(this);
     }
 
     public void clearRankingList() {
@@ -130,7 +142,7 @@ public class Ranking {
     }
 
     public void close() {
-        this.close = true;
+        this.closed = true;
         this.clearRankingList();
         if (this.entityRanking != null) {
             this.entityRanking.close();

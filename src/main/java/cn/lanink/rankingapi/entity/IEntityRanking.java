@@ -1,6 +1,8 @@
 package cn.lanink.rankingapi.entity;
 
 import cn.nukkit.Player;
+import cn.nukkit.level.Level;
+import cn.nukkit.math.Vector3;
 
 import java.util.Map;
 
@@ -10,6 +12,10 @@ import java.util.Map;
 public interface IEntityRanking {
 
     Map<Player, String> getShowTextMap();
+
+    void setPos(Vector3 vector3);
+
+    void setLevel(Level level);
 
     default boolean needTick() {
         return true;
