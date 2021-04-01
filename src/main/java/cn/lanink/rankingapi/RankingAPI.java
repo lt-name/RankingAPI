@@ -12,7 +12,7 @@ import lombok.Getter;
  */
 public class RankingAPI extends PluginBase {
 
-    public static final String VERSION = "1.0.1 git-77e9bd1";
+    public static final String VERSION = "?";
 
     private static RankingAPI rankingAPI;
 
