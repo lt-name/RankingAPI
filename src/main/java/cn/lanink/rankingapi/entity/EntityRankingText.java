@@ -5,8 +5,7 @@ import cn.nukkit.Player;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.LongEntityData;
-import cn.nukkit.level.Level;
-import cn.nukkit.math.Vector3;
+import cn.nukkit.level.Position;
 import cn.nukkit.network.protocol.AddEntityPacket;
 import cn.nukkit.network.protocol.RemoveEntityPacket;
 import cn.nukkit.network.protocol.SetEntityDataPacket;
@@ -28,10 +27,7 @@ public class EntityRankingText implements IEntityRanking {
 
     @Setter
     @Getter
-    private Vector3 pos;
-    @Setter
-    @Getter
-    private Level level;
+    private Position position;
 
     public static final EntityMetadata entityMetadata;
 
@@ -86,13 +82,17 @@ public class EntityRankingText implements IEntityRanking {
             return;
         }
         for (Map.Entry<Player, String> entry : this.getShowTextMap().entrySet()) {
-            if (!this.hasSpawned.contains(entry.getKey())) {
-                this.spawnTo(entry.getKey());
+            if (entry.getKey().getLevel() == this.getPosition().getLevel()) {
+                if (!this.hasSpawned.contains(entry.getKey())) {
+                    this.spawnTo(entry.getKey());
+                }
+                this.sendText(entry.getKey(), entry.getValue());
             }
-            this.sendText(entry.getKey(), entry.getValue());
         }
         for (Player player : this.hasSpawned) {
-            if (!this.getShowTextMap().containsKey(player) || !player.isOnline()) {
+            if (!this.getShowTextMap().containsKey(player) ||
+                    !player.isOnline() ||
+                    player.getLevel() != this.getPosition().getLevel()) {
                 this.despawnFrom(player);
             }
         }
@@ -111,9 +111,9 @@ public class EntityRankingText implements IEntityRanking {
         pk.yaw = 0;
         pk.headYaw = 0;
         pk.pitch = 0;
-        pk.x = (float) this.pos.getX();
-        pk.y = (float) this.pos.getY();
-        pk.z = (float) this.pos.getZ();
+        pk.x = (float) this.position.getX();
+        pk.y = (float) this.position.getY();
+        pk.z = (float) this.position.getZ();
         pk.speedX = 0;
         pk.speedY = 0;
         pk.speedZ = 0;

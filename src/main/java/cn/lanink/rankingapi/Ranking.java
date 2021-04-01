@@ -28,7 +28,6 @@ public class Ranking {
     @Setter
     private RankingFormat rankingFormat = new RankingFormat();
     private LinkedHashMap<String, String> list = new LinkedHashMap<>();
-    @Setter
     private Position position;
     private IEntityRanking entityRanking;
     @Getter
@@ -99,6 +98,13 @@ public class Ranking {
         }
     }
 
+    public void setPosition(Position position) {
+        this.position = position;
+        if (this.entityRanking != null) {
+            this.entityRanking.setPosition(position);
+        }
+    }
+
     public void setRankingEntity(Class<? extends IEntityRanking> newEntityRanking) {
         if (newEntityRanking == null) {
             try {
@@ -112,8 +118,7 @@ public class Ranking {
         }
         try {
             this.entityRanking = newEntityRanking.getConstructor().newInstance();
-            this.entityRanking.setPos(this.position);
-            this.entityRanking.setLevel(this.position.getLevel());
+            this.entityRanking.setPosition(this.position);
         } catch (Exception e) {
             RankingAPI.getInstance().getLogger().error("创建实体时出现错误：", e);
         }
