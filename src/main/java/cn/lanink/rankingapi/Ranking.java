@@ -55,6 +55,10 @@ public class Ranking {
         if (this.isClosed()) {
             return;
         }
+        if (this.plugin.isDisabled()) {
+            this.close();
+            return;
+        }
         if (i%100 == 0) {
             this.updateShowText();
         }
@@ -143,6 +147,8 @@ public class Ranking {
 
     public void close() {
         this.closed = true;
+        this.rankingAPI.getUpdateTask().removeRanking(this);
+        this.rankingAPI.getAsyncUpdateTask().removeRanking(this);
         this.clearRankingList();
         if (this.entityRanking != null) {
             this.entityRanking.close();
