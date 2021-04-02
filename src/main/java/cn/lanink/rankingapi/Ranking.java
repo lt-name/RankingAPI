@@ -159,6 +159,7 @@ public class Ranking {
 
     public void setRankingList(@NotNull Supplier<Map<String, ? extends Number>> supplier) {
         this.supplier = supplier;
+        this.setRankingList(this.supplier.get());
     }
 
     /**
