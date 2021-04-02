@@ -1,6 +1,9 @@
 package cn.lanink.rankingapi;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author lt_name
@@ -9,16 +12,25 @@ import lombok.*;
 @Getter
 @EqualsAndHashCode
 @AllArgsConstructor
-@NoArgsConstructor
 public class RankingFormat {
 
-    private String Top = "§b<<§a[§e%name%§a]§b>>";
-    private String Line = "§bTop[%ranking%] §a%player% §c- §b%score%";
-    private String LineSelf = "§bTop[%ranking%] §e%player%(me) §c- §b%score%";
-    private String Bottom = "§b<<§a[§e%name%§a]§b>>";
+    private String Top;
+    private String Line;
+    private String LineSelf;
+    private String Bottom;
 
-    private SortOrder sortOrder = SortOrder.ASCENDING;
-    private int showLine = 10;
+    private SortOrder sortOrder;
+    private int showLine;
+
+    public static RankingFormat getDefaultFormat() {
+        return new RankingFormat(
+                "§b<<§a[§e%name%§a]§b>>",
+                "§bTop[%ranking%] §a%player% §c- §b%score%",
+                "§bTop[%ranking%] §e%player%(me) §c- §b%score%",
+                "§b<<§a[§e%name%§a]§b>>",
+                SortOrder.ASCENDING,
+                10);
+    }
 
     public enum SortOrder {
         ASCENDING,

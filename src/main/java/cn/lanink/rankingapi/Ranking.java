@@ -28,7 +28,7 @@ public class Ranking {
     private String name;
     private Position position;
     private IEntityRanking entityRanking;
-    private RankingFormat rankingFormat = new RankingFormat();
+    private RankingFormat rankingFormat = RankingFormat.getDefaultFormat();
     private LinkedHashMap<String, String> list = new LinkedHashMap<>();
     @Getter
     private boolean closed = false;
