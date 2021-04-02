@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -33,17 +34,29 @@ public class EntityRankingText implements IEntityRanking {
     public static final EntityMetadata entityMetadata;
 
     static {
-        //TODO 使用反射获取数据，以便于在nk更新时不需要再次编译
+        //使用反射获取，保证数据是最新的
         entityMetadata = new EntityMetadata()
-                .putLong(Entity.DATA_FLAGS, 0)
-                .putByte(Entity.DATA_COLOR, 0)
-                .putString(Entity.DATA_NAMETAG, "")
-                .putLong(Entity.DATA_LEAD_HOLDER_EID, -1)
-                .putFloat(Entity.DATA_SCALE, 1f)
-                .putBoolean(Entity.DATA_ALWAYS_SHOW_NAMETAG, true);
-        long flags = entityMetadata.getLong(Entity.DATA_FLAGS);
-        flags ^= 1 << Entity.DATA_FLAG_IMMOBILE;
-        entityMetadata.put(new LongEntityData(Entity.DATA_FLAGS, flags));
+                .putLong(getField("DATA_FLAGS", 0), 0)
+                .putByte(getField("DATA_COLOR", 3), 0)
+                .putString(getField("DATA_NAMETAG", 4), "")
+                .putLong(getField("DATA_LEAD_HOLDER_EID", 37), -1L)
+                .putFloat(getField("DATA_SCALE", 38), 1F)
+                .putBoolean(getField("DATA_ALWAYS_SHOW_NAMETAG", 81), true);
+        long flags = entityMetadata.getLong(getField("DATA_FLAGS", 0));
+        flags ^= 1L << getField("DATA_FLAG_IMMOBILE", 16);
+        entityMetadata.put(new LongEntityData(getField("DATA_FLAGS", 0), flags));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Number> T getField(String name, T defaultValue) {
+        try {
+            Field field = Entity.class.getDeclaredField(name);
+            field.setAccessible(true);
+            return (T) field.get(null);
+        } catch (Exception e) {
+            RankingAPI.getInstance().getLogger().error("反射获取数据时出现错误！", e);
+        }
+        return defaultValue;
     }
 
     @Setter
