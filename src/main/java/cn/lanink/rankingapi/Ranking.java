@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * @author lt_name
@@ -29,7 +30,9 @@ public class Ranking {
     private Position position;
     private IEntityRanking entityRanking;
     private RankingFormat rankingFormat = RankingFormat.getDefaultFormat();
-    private LinkedHashMap<String, String> list = new LinkedHashMap<>();
+
+    private Supplier<Map<String, ? extends Number>> supplier = null;
+    private final LinkedHashMap<String, String> list = new LinkedHashMap<>();
     @Getter
     private boolean closed = false;
 
@@ -56,6 +59,11 @@ public class Ranking {
     public void onTick(int i) {
         if (this.isClosed()) {
             return;
+        }
+        if (i%100 == 0) {
+            if (this.supplier != null) {
+                this.setRankingList(this.supplier.get());
+            }
         }
         if (this.entityRanking.needTick()) {
             this.entityRanking.onTick(i);
@@ -148,12 +156,17 @@ public class Ranking {
         this.rankingFormat = rankingFormat;
     }
 
+
+    public void setRankingList(@NotNull Supplier<Map<String, ? extends Number>> supplier) {
+        this.supplier = supplier;
+    }
+
     /**
      * 设置需要排行的数据
      *
      * @param newList 新数据
      */
-    public void setRankingList(@NotNull Map<String, ? extends Number> newList) {
+    public synchronized void setRankingList(@NotNull Map<String, ? extends Number> newList) {
         this.clearRankingList();
         List<Map.Entry<String, ? extends Number>> list = new ArrayList<>(newList.entrySet());
         if (this.rankingFormat.getSortOrder() == RankingFormat.SortOrder.ASCENDING) {
