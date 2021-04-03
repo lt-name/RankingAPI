@@ -14,10 +14,10 @@ import lombok.Setter;
 @AllArgsConstructor
 public class RankingFormat {
 
-    private String Top;
-    private String Line;
-    private String LineSelf;
-    private String Bottom;
+    private String top;
+    private String line;
+    private String lineSelf;
+    private String bottom;
 
     private SortOrder sortOrder;
     private int showLine;
