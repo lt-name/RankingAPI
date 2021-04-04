@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 @EqualsAndHashCode
 @AllArgsConstructor
-public class RankingFormat {
+public class RankingFormat implements Cloneable {
 
     private String top;
     private String line;
@@ -21,6 +21,11 @@ public class RankingFormat {
 
     private SortOrder sortOrder;
     private int showLine;
+
+    public enum SortOrder {
+        ASCENDING,
+        DESCENDING
+    }
 
     public static RankingFormat getDefaultFormat() {
         return new RankingFormat(
@@ -32,9 +37,13 @@ public class RankingFormat {
                 10);
     }
 
-    public enum SortOrder {
-        ASCENDING,
-        DESCENDING
+    @Override
+    public RankingFormat clone() {
+        try {
+            return (RankingFormat) super.clone();
+        } catch (CloneNotSupportedException ignored) {
+            return null;
+        }
     }
 
 }
