@@ -37,7 +37,7 @@ public class Ranking {
     private final LinkedHashMap<String, String> list = new LinkedHashMap<>();
 
     @Getter
-    private int dataUpdateInterval = 100;
+    private int dataUpdateInterval = 20;
 
     @Getter
     private boolean closed = false;
@@ -98,13 +98,21 @@ public class Ranking {
                     .replace("%name%", this.getName())).append("\n");
 
             int line = 0;
-            for (Map.Entry<String, String> entry : this.list.entrySet()) {
-                line++;
-
-                String lineText;
-                if (line > this.rankingFormat.getShowLine()) {
+            int showLine = 1;
+            double distance = this.getPosition().distance(player);
+            for (Map.Entry<Integer, Integer> entry : this.rankingFormat.getShowLine().entrySet()) {
+                if (distance <= entry.getKey()) {
+                    showLine = entry.getValue();
                     break;
                 }
+            }
+            for (Map.Entry<String, String> entry : this.list.entrySet()) {
+                line++;
+                if (line > showLine) {
+                    break;
+                }
+
+                String lineText;
                 if (player.getName().equals(entry.getKey())) {
                     lineText = this.rankingFormat.getLineSelf()
                             .replace("%ranking%", line + "")
