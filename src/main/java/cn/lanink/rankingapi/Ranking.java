@@ -27,6 +27,7 @@ public class Ranking {
     @Setter
     @Getter
     private String name;
+    @Getter
     private Position position;
     @Getter
     private IEntityRanking entityRanking;
