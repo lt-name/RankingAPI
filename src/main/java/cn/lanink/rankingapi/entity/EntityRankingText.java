@@ -7,10 +7,10 @@ import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.level.Position;
 import cn.nukkit.network.protocol.AddEntityPacket;
+import cn.nukkit.network.protocol.MoveEntityAbsolutePacket;
 import cn.nukkit.network.protocol.RemoveEntityPacket;
 import cn.nukkit.network.protocol.SetEntityDataPacket;
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -22,14 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author lt_name
  */
-public class EntityRankingText implements IEntityRanking {
+public class EntityRankingText extends Position implements IEntityRanking {
 
     @Getter
     protected final long id;
-
-    @Setter
-    @Getter
-    private Position position;
 
     public static final EntityMetadata entityMetadata;
 
@@ -62,15 +58,50 @@ public class EntityRankingText implements IEntityRanking {
     private final Set<Player> hasSpawned = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Getter
-    protected Map<Player, String> showTextMap = new ConcurrentHashMap<>();
+    protected final Map<Player, String> showTextMap = new ConcurrentHashMap<>();
+
+    @Getter
+    private int maxCanSeeDistance = 16 * 40;
 
     public EntityRankingText() {
         this.id = Entity.entityCount++;
     }
 
     @Override
+    public void setPosition(@NotNull Position position) {
+        this.x = position.getX();
+        this.y = position.getY();
+        this.z = position.getZ();
+        this.setLevel(position.getLevel());
+
+        MoveEntityAbsolutePacket pk = new MoveEntityAbsolutePacket();
+        pk.eid = this.getId();
+        pk.x = this.getX();
+        pk.y = this.getY();
+        pk.z = this.getZ();
+        pk.yaw = 0D;
+        pk.headYaw = 0D;
+        pk.pitch = 0D;
+        for (Player player : this.hasSpawned) {
+            player.dataPacket(pk.clone());
+        }
+    }
+
+    @Override
+    public Position getPosition() {
+        return this;
+    }
+
+    @Override
     public void setShowText(@NotNull Player player, @NotNull String showText) {
         this.showTextMap.put(player, showText);
+    }
+
+    public void setMaxCanSeeDistance(int maxCanSeeDistance) {
+        if (maxCanSeeDistance < 1) {
+            maxCanSeeDistance = 1;
+        }
+        this.maxCanSeeDistance = maxCanSeeDistance;
     }
 
     @Override
@@ -93,7 +124,8 @@ public class EntityRankingText implements IEntityRanking {
             return;
         }
         for (Map.Entry<Player, String> entry : this.getShowTextMap().entrySet()) {
-            if (entry.getKey().getLevel() == this.getPosition().getLevel()) {
+            if (entry.getKey().getLevel() == this.getLevel() &&
+                    this.distance(entry.getKey()) <= this.getMaxCanSeeDistance()) {
                 if (!this.hasSpawned.contains(entry.getKey())) {
                     this.spawnTo(entry.getKey());
                 }
@@ -103,7 +135,8 @@ public class EntityRankingText implements IEntityRanking {
         for (Player player : this.hasSpawned) {
             if (!this.getShowTextMap().containsKey(player) ||
                     !player.isOnline() ||
-                    player.getLevel() != this.getPosition().getLevel()) {
+                    player.getLevel() != this.getLevel() ||
+                    this.distance(player) > this.getMaxCanSeeDistance()) {
                 this.despawnFrom(player);
             }
         }
@@ -122,9 +155,9 @@ public class EntityRankingText implements IEntityRanking {
         pk.yaw = 0;
         pk.headYaw = 0;
         pk.pitch = 0;
-        pk.x = (float) this.position.getX();
-        pk.y = (float) this.position.getY();
-        pk.z = (float) this.position.getZ();
+        pk.x = (float) this.getX();
+        pk.y = (float) this.getY();
+        pk.z = (float) this.getZ();
         pk.speedX = 0;
         pk.speedY = 0;
         pk.speedZ = 0;

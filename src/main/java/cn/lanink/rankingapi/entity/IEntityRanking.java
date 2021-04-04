@@ -13,9 +13,13 @@ public interface IEntityRanking {
 
     void setPosition(Position position);
 
+    Position getPosition();
+
     Map<Player, String> getShowTextMap();
 
     void setShowText(@NotNull Player player, @NotNull String showText);
+
+    void setMaxCanSeeDistance(int maxCanSeeDistance);
 
     default boolean needTick() {
         return true;
