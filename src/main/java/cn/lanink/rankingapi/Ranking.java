@@ -28,6 +28,7 @@ public class Ranking {
     @Getter
     private String name;
     private Position position;
+    @Getter
     private IEntityRanking entityRanking;
     private RankingFormat rankingFormat = RankingFormat.getDefaultFormat();
 
