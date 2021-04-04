@@ -33,6 +33,10 @@ public class Ranking {
 
     private Supplier<Map<String, ? extends Number>> supplier = null;
     private final LinkedHashMap<String, String> list = new LinkedHashMap<>();
+
+    @Getter
+    private int dataUpdateInterval = 100;
+
     @Getter
     private boolean closed = false;
 
@@ -60,7 +64,7 @@ public class Ranking {
         if (this.isClosed()) {
             return;
         }
-        if (i%100 == 0) {
+        if (i%this.getDataUpdateInterval() == 0) {
             if (this.supplier != null) {
                 this.setRankingList(this.supplier.get());
             }
@@ -78,7 +82,7 @@ public class Ranking {
             this.close();
             return;
         }
-        if (i%100 == 0) {
+        if (i%this.getDataUpdateInterval() == 0) {
             this.updateShowText();
         }
         if (this.entityRanking.needAsyncTick()) {
@@ -179,6 +183,13 @@ public class Ranking {
             this.list.put(entry.getKey(), entry.getValue().toString());
         }
         this.updateShowText();
+    }
+
+    public void setDataUpdateInterval(int dataUpdateInterval) {
+        if (dataUpdateInterval < 1) {
+            dataUpdateInterval = 1;
+        }
+        this.dataUpdateInterval = dataUpdateInterval;
     }
 
     /**
