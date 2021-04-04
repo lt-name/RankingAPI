@@ -36,19 +36,19 @@ public class EntityRankingText implements IEntityRanking {
     static {
         //使用反射获取，保证数据是最新的
         entityMetadata = new EntityMetadata()
-                .putLong(getField("DATA_FLAGS", 0), 0)
-                .putByte(getField("DATA_COLOR", 3), 0)
-                .putString(getField("DATA_NAMETAG", 4), "")
-                .putLong(getField("DATA_LEAD_HOLDER_EID", 37), -1L)
-                .putFloat(getField("DATA_SCALE", 38), 1F)
-                .putBoolean(getField("DATA_ALWAYS_SHOW_NAMETAG", 81), true);
-        long flags = entityMetadata.getLong(getField("DATA_FLAGS", 0));
-        flags ^= 1L << getField("DATA_FLAG_IMMOBILE", 16);
-        entityMetadata.put(new LongEntityData(getField("DATA_FLAGS", 0), flags));
+                .putLong(getEntityField("DATA_FLAGS", Entity.DATA_FLAGS), 0)
+                .putByte(getEntityField("DATA_COLOR", Entity.DATA_COLOR), 0)
+                .putString(getEntityField("DATA_NAMETAG", Entity.DATA_NAMETAG), "")
+                .putLong(getEntityField("DATA_LEAD_HOLDER_EID", Entity.DATA_LEAD_HOLDER_EID), -1L)
+                .putFloat(getEntityField("DATA_SCALE", Entity.DATA_SCALE), 1F)
+                .putBoolean(getEntityField("DATA_ALWAYS_SHOW_NAMETAG", Entity.DATA_ALWAYS_SHOW_NAMETAG), true);
+        long flags = entityMetadata.getLong(getEntityField("DATA_FLAGS", Entity.DATA_FLAGS));
+        flags ^= 1L << getEntityField("DATA_FLAG_IMMOBILE", Entity.DATA_FLAG_IMMOBILE);
+        entityMetadata.put(new LongEntityData(getEntityField("DATA_FLAGS", Entity.DATA_FLAGS), flags));
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends Number> T getField(String name, T defaultValue) {
+    private static <T extends Number> T getEntityField(String name, T defaultValue) {
         try {
             Field field = Entity.class.getDeclaredField(name);
             field.setAccessible(true);
@@ -59,10 +59,6 @@ public class EntityRankingText implements IEntityRanking {
         return defaultValue;
     }
 
-    @Setter
-    @Getter
-    private boolean allPlayerCanSee = true;
-
     private final Set<Player> hasSpawned = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     @Getter
@@ -72,6 +68,7 @@ public class EntityRankingText implements IEntityRanking {
         this.id = Entity.entityCount++;
     }
 
+    @Override
     public void setShowText(@NotNull Player player, @NotNull String showText) {
         this.showTextMap.put(player, showText);
     }
@@ -155,7 +152,7 @@ public class EntityRankingText implements IEntityRanking {
 
     private void sendText(@NotNull Player player, @NotNull String string) {
         this.sendData(new Player[] {player},
-                (new EntityMetadata()).putString(Entity.DATA_NAMETAG, string));
+                (new EntityMetadata()).putString(getEntityField("DATA_NAMETAG", Entity.DATA_NAMETAG), string));
     }
 
     private void sendData(@NotNull Player[] players, @NotNull EntityMetadata data) {
