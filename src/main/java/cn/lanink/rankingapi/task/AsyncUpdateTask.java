@@ -31,33 +31,29 @@ public class AsyncUpdateTask extends AsyncTask implements IRankingAPITask {
     @Override
     public void onRun() {
         long startTime;
-        while(true) {
+        while(RankingAPI.getInstance().isEnabled()) {
             startTime = System.currentTimeMillis();
-            if (RankingAPI.getInstance().isDisabled()) {
-                return;
-            }
 
             try {
-                this.work();
+                this.work(this.tick);
             } catch (Exception e) {
-                e.printStackTrace();
+                RankingAPI.getInstance().getLogger().error("AsyncUpdateTask遍历Ranking时出错：", e);
             }
 
             long duration = System.currentTimeMillis() - startTime;
-            if (duration < 50L) {
-                try {
-                    Thread.sleep(50L - duration);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            try {
+                Thread.sleep(Math.max(50L - duration, 1));
+            } catch (Exception e) {
+                RankingAPI.getInstance().getLogger().error("AsyncUpdateTask尝试休眠时出错：", e);
             }
+
             this.tick++;
         }
     }
 
-    private void work() {
+    private void work(int tick) {
         for (Ranking ranking : this.updateRankings) {
-            ranking.onAsyncTick(this.tick);
+            ranking.onAsyncTick(tick);
         }
     }
 
