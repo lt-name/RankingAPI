@@ -11,8 +11,8 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -68,8 +68,9 @@ public class Ranking {
         }
         if (i%this.getDataUpdateInterval() == 0) {
             if (this.supplier != null) {
-                this.setRankingList(this.supplier.get());
+                this.setRankingList(this.supplier.get(), false);
             }
+            this.updateShowText();
         }
         if (this.entityRanking.needTick()) {
             this.entityRanking.onTick(i);
@@ -84,15 +85,22 @@ public class Ranking {
             this.close();
             return;
         }
-        if (i%this.getDataUpdateInterval() == 0) {
+        //TODO 解决异步遍历问题
+        /*if (i%this.getDataUpdateInterval() == 0) {
             this.updateShowText();
-        }
+        }*/
         if (this.entityRanking.needAsyncTick()) {
             this.entityRanking.onAsyncTick(i);
         }
     }
 
     private void updateShowText() {
+        for (Player player : new HashSet<>(this.entityRanking.getShowTextMap().keySet())) {
+            if (!player.isOnline()) {
+                this.entityRanking.getShowTextMap().remove(player);
+            }
+        }
+
         for (Player player : Server.getInstance().getOnlinePlayers().values()) {
             StringBuilder showText = new StringBuilder(this.rankingFormat.getTop()
                     .replace("%name%", this.getName())).append("\n");
@@ -182,17 +190,41 @@ public class Ranking {
      * @param newList 新数据
      */
     public synchronized void setRankingList(@NotNull Map<String, ? extends Number> newList) {
-        this.clearRankingList();
-        List<Map.Entry<String, ? extends Number>> list = new ArrayList<>(newList.entrySet());
+        this.setRankingList(newList, true);
+    }
+
+    /**
+     * 设置需要排行的数据
+     *
+     * @param newList 新数据
+     * @param updateShowText true 现在更新显示数据 false 等待排行榜task更新显示数据
+     */
+    public synchronized void setRankingList(@NotNull Map<String, ? extends Number> newList, boolean updateShowText) {
+        ArrayList<Map.Entry<String, ? extends Number>> arrayList = new ArrayList<>(newList.entrySet());
         if (this.rankingFormat.getSortOrder() == RankingFormat.SortOrder.ASCENDING) {
-            list.sort((o1, o2) -> (int) Math.round(o2.getValue().doubleValue() - o1.getValue().doubleValue()));
+            arrayList.sort((o1, o2) -> {
+                if (o1.getValue() == o2.getValue()) {
+                    return 0;
+                }
+                return o1.getValue().doubleValue() > o2.getValue().doubleValue() ? -1 : 1;
+            });
         }else {
-            list.sort((o1, o2) -> (int) Math.round(o1.getValue().doubleValue() - o2.getValue().doubleValue()));
+            arrayList.sort((o1, o2) -> {
+                if (o1.getValue() == o2.getValue()) {
+                    return 0;
+                }
+                return o1.getValue().doubleValue() > o2.getValue().doubleValue() ? 1 : -1;
+            });
         }
-        for(Map.Entry<String, ? extends Number> entry : list) {
+
+        this.list.clear();
+        for(Map.Entry<String, ? extends Number> entry : arrayList) {
             this.list.put(entry.getKey(), entry.getValue().toString());
         }
-        this.updateShowText();
+
+        if (updateShowText) {
+            this.updateShowText();
+        }
     }
 
     public void setDataUpdateInterval(int dataUpdateInterval) {
