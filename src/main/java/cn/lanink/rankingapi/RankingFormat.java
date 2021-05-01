@@ -23,7 +23,7 @@ public class RankingFormat implements Cloneable {
     private String bottom;
 
     private SortOrder sortOrder;
-    //distance : showLine
+    //key:distance - value:showLine
     private final Map<Integer, Integer> showLine = new TreeMap<>(Comparator.comparingInt(o -> o));
 
     private static RankingFormat defaultFormat;

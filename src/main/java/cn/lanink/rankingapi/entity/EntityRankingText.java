@@ -1,6 +1,7 @@
 package cn.lanink.rankingapi.entity;
 
 import cn.lanink.rankingapi.RankingAPI;
+import cn.lanink.rankingapi.utils.EntityUtils;
 import cn.nukkit.Player;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityMetadata;
@@ -13,7 +14,6 @@ import cn.nukkit.network.protocol.SetEntityDataPacket;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -32,27 +32,15 @@ public class EntityRankingText extends Position implements IEntityRanking {
     static {
         //使用反射获取，保证数据是最新的
         entityMetadata = new EntityMetadata()
-                .putLong(getEntityField("DATA_FLAGS", Entity.DATA_FLAGS), 0)
-                .putByte(getEntityField("DATA_COLOR", Entity.DATA_COLOR), 0)
-                .putString(getEntityField("DATA_NAMETAG", Entity.DATA_NAMETAG), "")
-                .putLong(getEntityField("DATA_LEAD_HOLDER_EID", Entity.DATA_LEAD_HOLDER_EID), -1L)
-                .putFloat(getEntityField("DATA_SCALE", Entity.DATA_SCALE), 1F)
-                .putBoolean(getEntityField("DATA_ALWAYS_SHOW_NAMETAG", Entity.DATA_ALWAYS_SHOW_NAMETAG), true);
-        long flags = entityMetadata.getLong(getEntityField("DATA_FLAGS", Entity.DATA_FLAGS));
-        flags ^= 1L << getEntityField("DATA_FLAG_IMMOBILE", Entity.DATA_FLAG_IMMOBILE);
-        entityMetadata.put(new LongEntityData(getEntityField("DATA_FLAGS", Entity.DATA_FLAGS), flags));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T extends Number> T getEntityField(String name, T defaultValue) {
-        try {
-            Field field = Entity.class.getDeclaredField(name);
-            field.setAccessible(true);
-            return (T) field.get(null);
-        } catch (Exception e) {
-            RankingAPI.getInstance().getLogger().error("反射获取数据时出现错误！", e);
-        }
-        return defaultValue;
+                .putLong(EntityUtils.getEntityField("DATA_FLAGS", Entity.DATA_FLAGS), 0)
+                .putByte(EntityUtils.getEntityField("DATA_COLOR", Entity.DATA_COLOR), 0)
+                .putString(EntityUtils.getEntityField("DATA_NAMETAG", Entity.DATA_NAMETAG), "")
+                .putLong(EntityUtils.getEntityField("DATA_LEAD_HOLDER_EID", Entity.DATA_LEAD_HOLDER_EID), -1L)
+                .putFloat(EntityUtils.getEntityField("DATA_SCALE", Entity.DATA_SCALE), 1F)
+                .putBoolean(EntityUtils.getEntityField("DATA_ALWAYS_SHOW_NAMETAG", Entity.DATA_ALWAYS_SHOW_NAMETAG), true);
+        long flags = entityMetadata.getLong(EntityUtils.getEntityField("DATA_FLAGS", Entity.DATA_FLAGS));
+        flags ^= 1L << EntityUtils.getEntityField("DATA_FLAG_IMMOBILE", Entity.DATA_FLAG_IMMOBILE);
+        entityMetadata.put(new LongEntityData(EntityUtils.getEntityField("DATA_FLAGS", Entity.DATA_FLAGS), flags));
     }
 
     private final Set<Player> hasSpawned = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -185,7 +173,7 @@ public class EntityRankingText extends Position implements IEntityRanking {
 
     private void sendText(@NotNull Player player, @NotNull String string) {
         this.sendData(new Player[] {player},
-                (new EntityMetadata()).putString(getEntityField("DATA_NAMETAG", Entity.DATA_NAMETAG), string));
+                (new EntityMetadata()).putString(EntityUtils.getEntityField("DATA_NAMETAG", Entity.DATA_NAMETAG), string));
     }
 
     private void sendData(@NotNull Player[] players, @NotNull EntityMetadata data) {
