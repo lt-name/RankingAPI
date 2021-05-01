@@ -26,6 +26,24 @@ public class RankingFormat implements Cloneable {
     //distance : showLine
     private final Map<Integer, Integer> showLine = new TreeMap<>(Comparator.comparingInt(o -> o));
 
+    private static RankingFormat defaultFormat;
+
+    static {
+        HashMap<Integer, Integer> showLine = new HashMap<>();
+        showLine.put(3, 15); //玩家距离小于等于3时 显示15行
+        showLine.put(5, 10);
+        showLine.put(15, 5);
+        showLine.put(20, 3);
+
+        defaultFormat = new RankingFormat(
+                "§b<<§a[§e%name%§a]§b>>",
+                "§bTop[%ranking%] §a%player% §c- §b%score%",
+                "§bTop[%ranking%] §e%player%(me) §c- §b%score%",
+                "§b<<§a[§e%name%§a]§b>>",
+                SortOrder.ASCENDING,
+                showLine);
+    }
+
     public RankingFormat(String top, String line, String lineSelf, String bottom, SortOrder sortOrder, Map<Integer, Integer> showLine) {
         this.top = top;
         this.line = line;
@@ -42,19 +60,7 @@ public class RankingFormat implements Cloneable {
     }
 
     public static RankingFormat getDefaultFormat() {
-        HashMap<Integer, Integer> showLine = new HashMap<>();
-        showLine.put(3, 15); //玩家距离小于等于3时 显示15行
-        showLine.put(5, 10);
-        showLine.put(15, 5);
-        showLine.put(20, 3);
-
-        return new RankingFormat(
-                "§b<<§a[§e%name%§a]§b>>",
-                "§bTop[%ranking%] §a%player% §c- §b%score%",
-                "§bTop[%ranking%] §e%player%(me) §c- §b%score%",
-                "§b<<§a[§e%name%§a]§b>>",
-                SortOrder.ASCENDING,
-                showLine);
+        return defaultFormat.clone();
     }
 
     @Override
