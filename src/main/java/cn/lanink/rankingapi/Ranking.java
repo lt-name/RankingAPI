@@ -77,9 +77,6 @@ public class Ranking {
             if (this.supplier != null) {
                 this.setRankingList(this.supplier.get(), false);
             }
-            if (this.needSequence.get()) {
-                this.rearrangeList();
-            }
         }
         if (this.entityRanking.needTick()) {
             this.entityRanking.onTick(i);
@@ -95,6 +92,7 @@ public class Ranking {
             return;
         }
         if (i%this.getDataUpdateInterval() == 0) {
+            this.rearrangeList();
             this.updateShowText();
         }
         if (this.entityRanking.needAsyncTick()) {
@@ -224,7 +222,7 @@ public class Ranking {
     }
 
     private void rearrangeList() {
-        if (this.listLock.get()) {
+        if (!this.needSequence.get() || this.listLock.get()) {
             return;
         }
         this.listLock.set(true);
@@ -251,6 +249,7 @@ public class Ranking {
             this.list.put(entry.getKey(), entry.getValue().toString());
         }
 
+        this.needSequence.set(false);
         this.listLock.set(false);
     }
 
