@@ -1,6 +1,6 @@
 name: RankingAPI
 main: cn.lanink.rankingapi.RankingAPI
-version: "1.3.0"
+version: "1.4.0"
 api: ["1.0.0"]
 load: STARTUP
 author: "LT_Name"
