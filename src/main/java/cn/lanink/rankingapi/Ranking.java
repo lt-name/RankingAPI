@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
@@ -34,6 +36,11 @@ public class Ranking {
     private RankingFormat rankingFormat = RankingFormat.getDefaultFormat();
 
     private Supplier<Map<String, ? extends Number>> supplier = null;
+
+    private final AtomicBoolean listLock = new AtomicBoolean();
+    private final AtomicBoolean needSequence = new AtomicBoolean();
+
+    private final ConcurrentHashMap<String, Number> originalList = new ConcurrentHashMap<>();
     private final LinkedHashMap<String, String> list = new LinkedHashMap<>();
 
     @Getter
@@ -70,7 +77,6 @@ public class Ranking {
             if (this.supplier != null) {
                 this.setRankingList(this.supplier.get(), false);
             }
-            this.updateShowText();
         }
         if (this.entityRanking.needTick()) {
             this.entityRanking.onTick(i);
@@ -85,16 +91,20 @@ public class Ranking {
             this.close();
             return;
         }
-        //TODO 解决异步遍历问题
-        /*if (i%this.getDataUpdateInterval() == 0) {
+        if (i%this.getDataUpdateInterval() == 0) {
+            this.rearrangeList();
             this.updateShowText();
-        }*/
+        }
         if (this.entityRanking.needAsyncTick()) {
             this.entityRanking.onAsyncTick(i);
         }
     }
 
     private void updateShowText() {
+        if (this.listLock.get()) {
+            return;
+        }
+
         for (Player player : new HashSet<>(this.entityRanking.getShowTextMap().keySet())) {
             if (!player.isOnline()) {
                 this.entityRanking.getShowTextMap().remove(player);
@@ -200,7 +210,24 @@ public class Ranking {
      * @param updateShowText true 现在更新显示数据 false 等待排行榜task更新显示数据
      */
     public synchronized void setRankingList(@NotNull Map<String, ? extends Number> newList, boolean updateShowText) {
-        ArrayList<Map.Entry<String, ? extends Number>> arrayList = new ArrayList<>(newList.entrySet());
+        this.originalList.clear();
+        this.originalList.putAll(newList);
+
+        this.needSequence.set(true);
+
+        if (updateShowText) {
+            this.rearrangeList();
+            this.updateShowText();
+        }
+    }
+
+    private void rearrangeList() {
+        if (!this.needSequence.get() || this.listLock.get()) {
+            return;
+        }
+        this.listLock.set(true);
+
+        ArrayList<Map.Entry<String, ? extends Number>> arrayList = new ArrayList<>(this.originalList.entrySet());
         if (this.rankingFormat.getSortOrder() == RankingFormat.SortOrder.ASCENDING) {
             arrayList.sort((o1, o2) -> {
                 if (o1.getValue() == o2.getValue()) {
@@ -222,9 +249,8 @@ public class Ranking {
             this.list.put(entry.getKey(), entry.getValue().toString());
         }
 
-        if (updateShowText) {
-            this.updateShowText();
-        }
+        this.needSequence.set(false);
+        this.listLock.set(false);
     }
 
     public void setDataUpdateInterval(int dataUpdateInterval) {

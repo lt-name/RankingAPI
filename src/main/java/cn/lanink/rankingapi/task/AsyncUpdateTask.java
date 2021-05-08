@@ -6,6 +6,7 @@ import cn.nukkit.scheduler.AsyncTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,7 +18,12 @@ public class AsyncUpdateTask extends AsyncTask implements IRankingAPITask {
     private int tick = 0;
 
     private final Set<Ranking> updateRankings = Collections.newSetFromMap(new ConcurrentHashMap<>());
-
+    
+    @Override
+    public Set<Ranking> getRankings() {
+        return this.updateRankings;
+    }
+    
     @Override
     public boolean addRanking(@NotNull Ranking ranking) {
         return this.updateRankings.add(ranking);
@@ -48,6 +54,10 @@ public class AsyncUpdateTask extends AsyncTask implements IRankingAPITask {
             }
 
             this.tick++;
+        }
+    
+        for (Ranking ranking : new HashSet<>(this.updateRankings)) {
+            ranking.close();
         }
     }
 
