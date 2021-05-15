@@ -2,6 +2,7 @@ package cn.lanink.rankingapi;
 
 import cn.lanink.rankingapi.task.AsyncUpdateTask;
 import cn.lanink.rankingapi.task.UpdateTask;
+import cn.lanink.rankingapi.utils.MetricsLite;
 import cn.nukkit.level.Position;
 import cn.nukkit.plugin.Plugin;
 import cn.nukkit.plugin.PluginBase;
@@ -41,6 +42,12 @@ public class RankingAPI extends PluginBase {
         this.updateTask = new UpdateTask();
         this.getServer().getScheduler().scheduleRepeatingTask(this, this.updateTask, 1);
 
+        try {
+            new MetricsLite(this, 11362);
+        } catch (Exception ignored) {
+        
+        }
+    
         this.getLogger().info("§eRankingAPI §aEnabled！ Version：" + VERSION);
         this.getServer().getScheduler().scheduleTask(this, () -> {
             this.getLogger().warning("§e RankingAPI §a是一款§e免费§a插件，开源链接:§e https://github.com/lt-name/RankingAPI");
