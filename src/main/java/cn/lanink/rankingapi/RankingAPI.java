@@ -49,14 +49,19 @@ public class RankingAPI extends PluginBase {
         }
     
         this.getLogger().info("§eRankingAPI §aEnabled！ Version：" + VERSION);
-        this.getServer().getScheduler().scheduleTask(this, () -> {
-            this.getLogger().warning("§e RankingAPI §a是一款§e免费§a插件，开源链接:§e https://github.com/lt-name/RankingAPI");
-        });
+        this.getServer().getScheduler().scheduleTask(this,
+                () -> this.getLogger().warning("§e RankingAPI §a是一款§e免费§a插件，开源链接:§e https://github.com/lt-name/RankingAPI")
+        );
     }
 
     @Override
     public void onDisable() {
-
+        for (Ranking ranking : this.asyncUpdateTask.getRankings()) {
+            ranking.close();
+        }
+        for (Ranking ranking : this.updateTask.getRankings()) {
+            ranking.close();
+        }
     }
 
     /**

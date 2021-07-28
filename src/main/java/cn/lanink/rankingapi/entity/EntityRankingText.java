@@ -3,6 +3,7 @@ package cn.lanink.rankingapi.entity;
 import cn.lanink.rankingapi.RankingAPI;
 import cn.lanink.rankingapi.utils.EntityUtils;
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.entity.data.LongEntityData;
@@ -49,7 +50,7 @@ public class EntityRankingText extends Position implements IEntityRanking {
     protected final Map<Player, String> showTextMap = new ConcurrentHashMap<>();
 
     @Getter
-    private int maxCanSeeDistance = 16 * 40;
+    private int maxCanSeeDistance = 16 * Server.getInstance().getViewDistance();
 
     public EntityRankingText() {
         this.id = Entity.entityCount++;
@@ -114,7 +115,7 @@ public class EntityRankingText extends Position implements IEntityRanking {
         for (Map.Entry<Player, String> entry : this.getShowTextMap().entrySet()) {
             if (entry.getKey().getLevel() == this.getLevel() &&
                     this.distance(entry.getKey()) <= this.getMaxCanSeeDistance()) {
-                if (!this.hasSpawned.contains(entry.getKey())) {
+                if (!this.hasSpawned.contains(entry.getKey()) || i%2400 == 0) {
                     this.spawnTo(entry.getKey());
                 }
                 this.sendText(entry.getKey(), entry.getValue());

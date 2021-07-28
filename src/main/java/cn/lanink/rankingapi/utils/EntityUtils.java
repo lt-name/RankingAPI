@@ -27,9 +27,8 @@ public class EntityUtils {
             } catch (Exception e) {
                 RankingAPI.getInstance().getLogger().error("反射获取数据时出现错误！", e);
             }
-            return defaultValue;
         }
-        return (T) fieldCache.get(name);
+        return (T) fieldCache.getOrDefault(name, defaultValue);
     }
 
 }
