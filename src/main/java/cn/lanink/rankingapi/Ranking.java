@@ -10,10 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -230,14 +227,14 @@ public class Ranking {
         ArrayList<Map.Entry<String, ? extends Number>> arrayList = new ArrayList<>(this.originalList.entrySet());
         if (this.rankingFormat.getSortOrder() == RankingFormat.SortOrder.ASCENDING) {
             arrayList.sort((o1, o2) -> {
-                if (o1.getValue() == o2.getValue()) {
+                if (Objects.equals(o1.getValue().doubleValue(), o2.getValue().doubleValue())) {
                     return 0;
                 }
                 return o1.getValue().doubleValue() > o2.getValue().doubleValue() ? -1 : 1;
             });
         }else {
             arrayList.sort((o1, o2) -> {
-                if (o1.getValue() == o2.getValue()) {
+                if (Objects.equals(o1.getValue().doubleValue(), o2.getValue().doubleValue())) {
                     return 0;
                 }
                 return o1.getValue().doubleValue() > o2.getValue().doubleValue() ? 1 : -1;
