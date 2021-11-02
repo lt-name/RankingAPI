@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -243,7 +244,7 @@ public class Ranking {
 
         this.list.clear();
         for(Map.Entry<String, ? extends Number> entry : arrayList) {
-            this.list.put(entry.getKey(), entry.getValue().toString());
+            this.list.put(entry.getKey(), new BigDecimal(entry.getValue().toString()).toString()); //避免使用科学计数法显示
         }
 
         this.needSequence.set(false);
