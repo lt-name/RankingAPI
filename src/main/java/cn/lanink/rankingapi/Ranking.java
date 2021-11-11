@@ -251,11 +251,13 @@ public class Ranking {
         this.listLock.set(false);
     }
 
+    /**
+     * 设置数据更新间隔
+     *
+     * @param dataUpdateInterval 更新间隔（单位：tick）
+     */
     public void setDataUpdateInterval(int dataUpdateInterval) {
-        if (dataUpdateInterval < 1) {
-            dataUpdateInterval = 1;
-        }
-        this.dataUpdateInterval = dataUpdateInterval;
+        this.dataUpdateInterval = Math.max(dataUpdateInterval, 1);
     }
 
     /**
